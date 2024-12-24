@@ -1,0 +1,6 @@
+from . import sunflower_nodes
+
+NODE_CLASS_MAPPINGS = sunflower_nodes.NODE_CLASS_MAPPINGS
+NODE_DISPLAY_NAME_MAPPINGS = sunflower_nodes.NODE_DISPLAY_NAME_MAPPINGS
+
+__all__ = ["NODE_CLASS_MAPPINGS", "NODE_DISPLAY_NAME_MAPPINGS"]
