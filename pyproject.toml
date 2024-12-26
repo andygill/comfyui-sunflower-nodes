@@ -1,0 +1,14 @@
+[project]
+name = "comfyui-sunflower-nodes"
+description = "ComfyUI nodes for 3D visualization."
+version = "1.0.0"
+license = {file = "LICENSE"}
+
+[project.urls]
+Repository = "https://github.com/andygill/comfyui-sunflower-nodes"
+#  Used by Comfy Registry https://comfyregistry.org
+
+[tool.comfy]
+PublisherId = ""
+DisplayName = "comfyui-sunflower-nodes"
+Icon = ""
