@@ -89,6 +89,71 @@ def angular_to_image_projection(
     return ImageCoordinate(map_x2, map_y2)
 
 
+class ResizeDown:
+    """
+    Resize an image downwards
+    """
+
+    scale_modes = ["bilinear", "nearest", "bicubic", "area"]
+
+    def __init__(self):
+        self.counter = 0
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "resize": (
+                    "FLOAT",
+                    {
+                        "default": 8,
+                        "max": 32,  # Maximum value
+                        "min": 1,  # Minimum value
+                        "step": 1,  # Slider's step
+                        "display": "number",  # Cosmetic only: display as "number" or "slider"
+                        "lazy": True,  # Will only be evaluated if check_lazy_status requires it
+                    },
+                ),
+                "mode": (s.scale_modes, {"default": s.scale_modes[3]}),
+                "modulo": (
+                    "INT",
+                    {
+                        "default": 1,
+                        "max": 16,  # Maximum value
+                        "min": 1,  # Minimum value
+                        "step": 1,  # Slider's step
+                        "display": "number",  # Cosmetic only: display as "number" or "slider"
+                        "lazy": True,  # Will only be evaluated if check_lazy_status requires it
+                    },
+                ),
+            },
+        }
+
+    OUTPUT_NODE = True
+    RETURN_TYPES = ("IMAGE",)
+    FUNCTION = "resize_down"
+    CATEGORY = "image/transform"
+
+    def resize_down(self, image, resize, mode, modulo):
+
+        image = image.permute(0, 3, 1, 2)
+
+        H, W = image.shape[2:4]
+        H = int(H / resize)
+        W = int(W / resize)
+        if W % modulo != 0:
+            W = W - (W % modulo)
+        if H % modulo != 0:
+            H = H - (H % modulo)
+        # use F.adaptive_avg_pool2d to reduce to something we can bilinear over
+        image = F.interpolate(image, size=(H, W), mode=mode)
+
+        image = image.permute(0, 2, 3, 1)
+
+        return {"ui": {"size": [H, W]}, "result": (image,)}
+
+
 class ChannelSelect:
     """
     Select a channel from a 3D feed
@@ -273,10 +338,12 @@ class EquirectangularToRectilinear:
 NODE_CLASS_MAPPINGS = {
     "ChannelSelect": ChannelSelect,
     "EquirectangularToRectilinear": EquirectangularToRectilinear,
+    "ResizeDown": ResizeDown,
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
 NODE_DISPLAY_NAME_MAPPINGS = {
     "ChannelSelect": "Stereo to Mono Channel Select",
     "EquirectangularToRectilinear": "Equirectangular to Rectilinear",
+    "ResizeDown": "Resize Down",
 }
