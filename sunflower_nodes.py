@@ -130,7 +130,6 @@ class ResizeDown:
             },
         }
 
-    OUTPUT_NODE = True
     RETURN_TYPES = ("IMAGE",)
     FUNCTION = "resize_down"
     CATEGORY = "image/transform"
