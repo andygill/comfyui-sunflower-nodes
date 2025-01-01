@@ -154,7 +154,52 @@ class ResizeDown:
         return {"ui": {"size": [H, W]}, "result": (image,)}
 
 
-class ChannelSelect:
+class MaskChannelSelect:
+    """
+    Select a channel from an image
+    """
+
+    def __init__(self):
+        self.counter = 0
+
+    channel_types = [
+        "Red",
+        "Green",
+        "Blue",
+        "Alpha",
+    ]
+
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "image": ("IMAGE",),
+                "channel": (s.channel_types, {"default": s.channel_types[0]}),
+            },
+        }
+
+    RETURN_TYPES = ("MASK",)
+
+    FUNCTION = "select"
+    CATEGORY = "image/transform"
+
+    def select(self, image, channel):
+        assert len(image.shape) == 4
+        assert channel in self.channel_types
+        height, width = image.shape[1:3]
+        match channel:
+            case "Red":
+                mask = image[:, :, :, 0]
+            case "Green":
+                mask = image[:, :, :, 1]
+            case "Blue":
+                mask = image[:, :, :, 2]
+            case "Alpha":
+                mask = image[:, :, :, 3]
+        return (mask,)
+
+
+class ImageChannelSelect:
     """
     Select a channel from a 3D feed
     """
@@ -162,7 +207,15 @@ class ChannelSelect:
     def __init__(self):
         self.counter = 0
 
-    channel_types = ["Left", "Right", "Top", "Bottom", "Left:Right", "Top:Bottom"]
+    channel_types = [
+        "RGB",
+        "Left",
+        "Right",
+        "Top",
+        "Bottom",
+        "Left:Right",
+        "Top:Bottom",
+    ]
 
     @classmethod
     def INPUT_TYPES(s):
@@ -183,6 +236,8 @@ class ChannelSelect:
         assert channel in self.channel_types
         height, width = image.shape[1:3]
         match channel:
+            case "RGB":
+                image = image[:, :, :, 0:3]
             case "Left":
                 image = image[:, :, 0 : width // 2, :]
             case "Right":
@@ -336,14 +391,16 @@ class EquirectangularToRectilinear:
 # A dictionary that contains all nodes you want to export with their names
 # NOTE: names should be globally unique
 NODE_CLASS_MAPPINGS = {
-    "ChannelSelect": ChannelSelect,
+    "ImageChannelSelect": ImageChannelSelect,
+    "MaskChannelSelect": MaskChannelSelect,
     "EquirectangularToRectilinear": EquirectangularToRectilinear,
     "ResizeDown": ResizeDown,
 }
 
 # A dictionary that contains the friendly/humanly readable titles for the nodes
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ChannelSelect": "Stereo to Mono Channel Select",
+    "ImageChannelSelect": "Image Channel Select",
+    "MaskChannelSelect": "Mask Channel Select",
     "EquirectangularToRectilinear": "Equirectangular to Rectilinear",
     "ResizeDown": "Resize Down",
 }
